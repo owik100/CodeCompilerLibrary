@@ -9,12 +9,11 @@ using System.Text;
 using CodeCompilerNs;
 
 
-string fileToCompile = @"C:\Users\owik1\Desktop\DesktopProgram.cs";
+string fileToCompile = @"C:\Users\owik1\Desktop\HelloWord.cs";
 string outputPath = @"C:\Users\owik1\Desktop\CompilationOutput";
 
-CodeCompiler compiler = new CodeCompiler();
+CodeCompiler compiler = new CodeCompiler(cSharpCompilationOptions: new CSharpCompilationOptions(OutputKind.ConsoleApplication));
 var res = compiler.CreateAssemblyToPath(fileToCompile, outputPath);
-
 if (res.Success)
 {
 

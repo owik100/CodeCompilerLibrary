@@ -10,39 +10,48 @@ namespace CodeCompilerNs
     {
         public CodeCompiler()
         {
-
+            PrepareDefaultReferences("");
         }
 
-        public CodeCompiler(string runtimePath, CSharpCompilationOptions cSharpCompilationOptions, IEnumerable<string> defaultNamespaces)
+        public CodeCompiler(string runtimePath = "", IEnumerable<string> defaultNamespaces = null, CSharpCompilationOptions cSharpCompilationOptions = null)
         {
-            RuntimePath = runtimePath;
-            DefaultCompilationOptions = cSharpCompilationOptions;
-            DefaultNamespaces = defaultNamespaces; ;
+            DefaultNamespaces = defaultNamespaces == null ? DefaultNamespaces : defaultNamespaces;
+            DefaultCompilationOptions = cSharpCompilationOptions == null ? DefaultCompilationOptions : cSharpCompilationOptions;
+            PrepareDefaultReferences(runtimePath);
         }
 
-        //Propeierties
+        #region Properties
         private readonly Dictionary<string, string> extensionsDct = new Dictionary<string, string>
         {
            { "DynamicallyLinkedLibrary", ".dll" },
+           { "ConsoleApplication", ".exe" },
+           { "WindowsRuntimeApplication", ".exe" },
         };
-        public static string RuntimePath = @"C:\Windows\Microsoft.NET\Framework\v4.0.30319\{0}.dll";
+
         public static IEnumerable<string> DefaultNamespaces = new[]
             {
                 "System",
             };
 
-        public static CSharpCompilationOptions DefaultCompilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+        private static CSharpCompilationOptions DefaultCompilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
                 .WithOverflowChecks(true).WithOptimizationLevel(OptimizationLevel.Release)
                 .WithUsings(DefaultNamespaces);
 
-        public static LanguageVersion LanguageVersion = LanguageVersion.Default;
+        private static LanguageVersion LanguageVersion = LanguageVersion.Default;
 
-        private readonly IEnumerable<MetadataReference> defaultReferences = new[]
+        private IEnumerable<MetadataReference> defaultReferences;
+        private string _runtimePath = @"C:\Windows\Microsoft.NET\Framework\v4.0.30319\{0}.dll";
+        private void PrepareDefaultReferences(string runtimePath)
         {
-                MetadataReference.CreateFromFile(string.Format(RuntimePath, "mscorlib")),
-                MetadataReference.CreateFromFile(string.Format(RuntimePath, "System")),
-                MetadataReference.CreateFromFile(string.Format(RuntimePath, "System.Core"))
-        };
+            runtimePath = !String.IsNullOrEmpty(runtimePath) ? runtimePath : _runtimePath;
+            defaultReferences = new[]
+            {
+                MetadataReference.CreateFromFile(string.Format(runtimePath, "mscorlib")),
+                MetadataReference.CreateFromFile(string.Format(runtimePath, "System")),
+                MetadataReference.CreateFromFile(string.Format(runtimePath, "System.Core"))
+            };
+        }
+        #endregion
 
 
         #region Private functions
@@ -68,7 +77,7 @@ namespace CodeCompilerNs
             return File.ReadAllText(inputPath);
         }
 
-        private void PrepareOutputPath(string fileName, string inputPath, ref string outputPath)
+        private void PrepareOutputPath(ref string fileName, string inputPath, ref string outputPath)
         {
             string ext = "";
             fileName = string.IsNullOrEmpty(fileName) ? Path.GetFileNameWithoutExtension(inputPath) : fileName;
@@ -81,7 +90,7 @@ namespace CodeCompilerNs
         public EmitResult CreateAssemblyToPath(string inputPath, string outputPath, string fileName = "")
         {
             string source = ReadFileFromPath(inputPath);
-            PrepareOutputPath(fileName, inputPath, ref outputPath);
+            PrepareOutputPath(ref fileName, inputPath, ref outputPath);
 
             SyntaxTree parsedSyntaxTree = ParseCode(source, "");
             CSharpCompilation compilation = CreateCompilation(fileName, parsedSyntaxTree);
