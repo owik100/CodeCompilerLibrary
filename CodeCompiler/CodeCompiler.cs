@@ -101,11 +101,23 @@ namespace CodeCompilerNs
             return EmitAssemblyToFile(compilation, outputPath);
         }
 
+        public SyntaxTree ParseCode(string code)
+        {
+            ParseOptions parseOptions = new CSharpParseOptions(LanguageVersion);
+            return SyntaxFactory.ParseSyntaxTree(code, parseOptions);
+        }
+
         public Assembly CreateAssemblyToMemory(string inputPath, ref EmitResult emitResult)
         {
             string source = ReadFileFromPath(inputPath);
             SyntaxTree parsedSyntaxTree = ParseCode(source, "");
             CSharpCompilation compilation = CreateCompilation("TempCompilation", parsedSyntaxTree);
+            return EmitAssemblyToMemory(compilation, ref emitResult);
+        }
+
+        public Assembly CreateAssemblyToMemory(SyntaxTree syntaxTree, ref EmitResult emitResult)
+        {
+            CSharpCompilation compilation = CreateCompilation("TempCompilation", syntaxTree);
             return EmitAssemblyToMemory(compilation, ref emitResult);
         }
         #endregion
