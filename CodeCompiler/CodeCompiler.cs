@@ -43,10 +43,9 @@ namespace CodeCompilerNs
                 .WithOverflowChecks(true)
                 .WithOptimizationLevel(OptimizationLevel.Release);
 
+        private static IEnumerable<PortableExecutableReference> ReferenceAssembliesProp = Basic.Reference.Assemblies.Net80.References.All;
 
-        private static IEnumerable<PortableExecutableReference> ReferenceAssembliesProp = ReferenceAssemblies.Net60;
-
-        private static LanguageVersion LanguageVersion = LanguageVersion.Default;
+        private static LanguageVersion LanguageVersion = LanguageVersion.CSharp12;
         #endregion
 
 
