@@ -44,7 +44,7 @@ namespace CodeCompilerNs
                 .WithOptimizationLevel(OptimizationLevel.Release);
 
 
-        private static IEnumerable<PortableExecutableReference> ReferenceAssembliesProp = ReferenceAssemblies.Net461;
+        private static IEnumerable<PortableExecutableReference> ReferenceAssembliesProp = ReferenceAssemblies.Net60;
 
         private static LanguageVersion LanguageVersion = LanguageVersion.Default;
         #endregion
@@ -68,10 +68,13 @@ namespace CodeCompilerNs
             return compilation.Emit(outputPath);
         }
 
-        private Assembly EmitAssemblyToMemory(CSharpCompilation compilation, ref EmitResult emitResult)
+        private Assembly? EmitAssemblyToMemory(CSharpCompilation compilation, ref EmitResult emitResult)
         {
             using var stream = new MemoryStream();
             emitResult = compilation.Emit(stream);
+            if (!emitResult.Success)
+                return null;
+
             stream.Position = 0;
             return Assembly.Load(stream.ToArray());
         }
@@ -107,15 +110,14 @@ namespace CodeCompilerNs
             return SyntaxFactory.ParseSyntaxTree(code, parseOptions);
         }
 
-        public Assembly CreateAssemblyToMemory(string inputPath, ref EmitResult emitResult)
+        public Assembly? CreateAssemblyToMemory(string code, ref EmitResult emitResult)
         {
-            string source = ReadFileFromPath(inputPath);
-            SyntaxTree parsedSyntaxTree = ParseCode(source, "");
+            SyntaxTree parsedSyntaxTree = ParseCode(code, "");
             CSharpCompilation compilation = CreateCompilation("TempCompilation", parsedSyntaxTree);
             return EmitAssemblyToMemory(compilation, ref emitResult);
         }
 
-        public Assembly CreateAssemblyToMemory(SyntaxTree syntaxTree, ref EmitResult emitResult)
+        public Assembly? CreateAssemblyToMemory(SyntaxTree syntaxTree, ref EmitResult emitResult)
         {
             CSharpCompilation compilation = CreateCompilation("TempCompilation", syntaxTree);
             return EmitAssemblyToMemory(compilation, ref emitResult);
