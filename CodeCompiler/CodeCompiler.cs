@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using System.Reflection;
 using System.Text;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace CodeCompilerNs
 {
@@ -120,6 +121,20 @@ namespace CodeCompilerNs
         {
             CSharpCompilation compilation = CreateCompilation("TempCompilation", syntaxTree);
             return EmitAssemblyToMemory(compilation, ref emitResult);
+        }
+
+        public byte[] EmitAssemblyToByteArray(string code, string assemblyName,  ref EmitResult emitResult)
+        {
+            SyntaxTree parsedSyntaxTree = ParseCode(code, "");
+            CSharpCompilation compilation = CreateCompilation(assemblyName, parsedSyntaxTree);
+
+            using var stream = new MemoryStream();
+            emitResult = compilation.Emit(stream);
+            if (!emitResult.Success)
+                return null;
+
+            stream.Position = 0;
+            return stream.ToArray();
         }
         #endregion
     }
